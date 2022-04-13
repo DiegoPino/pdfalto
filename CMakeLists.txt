@@ -45,7 +45,7 @@
  
   # Code depends on libpng14, OS provides libpn16 so we use the statically build library
   # Alpine 3.15 libraries are versioned? 
-  pkg_search_module(LIBFREETYPE REQUIRED freetype-2.0)
+  pkg_search_module(LIBFREETYPE REQUIRED freetype2)
   pkg_search_module(LIBXML REQUIRED libxml-2.0)
   set(LIBPNG_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/libs/image/png/src)
   target_include_directories(pdfalto PRIVATE ${LIBPNG_INCLUDE_DIRS} ${LIBXML_INCLUDE_DIRS} ${LIBFREETYPE_INCLUDE_DIRS})
