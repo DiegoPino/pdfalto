@@ -42,7 +42,7 @@ echo ${OSTYPE}
 
 if [[ "${OSTYPE}" == "linux"* ]]; then
   if ! [ -x "$(command -v autoreconf)" ]; then
-    sudo apt-get install autoconf libfontconfig-dev
+    apt-get install autoconf libfontconfig-dev
   fi
   ICU_CONFIG="Linux"
   LIB_INSTALL="linux"
@@ -66,7 +66,7 @@ elif [[ "$OSTYPE" == "cygwin" ]]; then
 else
   echo "Unknown OSTYPE: $OSTYPE, assuming it's LINUX"
   if ! [ -x "$(command -v autoreconf)" ]; then
-    sudo apt-get install autoconf libfontconfig-dev
+    apt-get install autoconf libfontconfig-dev
   fi
   ICU_CONFIG="Linux"
   LIB_INSTALL="linux"
@@ -142,7 +142,7 @@ cd ../..
 rm -rf libpng
 wget -O libpng.tar.gz -nc "${LIBPNG_URI}"
 tar -xzf libpng.tar.gz
-mv libpng* libpng
+mv libpng-* libpng
 cd libpng
 mkdir -p build/output
 cd build
