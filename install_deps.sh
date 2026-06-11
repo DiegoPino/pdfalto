@@ -153,6 +153,8 @@ cd ../..
 
 echo 'zlib and png installation is finished.'
 
+cd ..
+
 echo 'Copying libraries into their corresponding location.'
 MACHINE_TYPE=$(uname -m)
 if [[ "${MACHINE_TYPE}" == 'x86_64' ]]; then
