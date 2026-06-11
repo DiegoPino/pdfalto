@@ -218,6 +218,5 @@ for language in "${languages[@]}" ; do
   language_url="https://dl.xpdfreader.com/xpdf-${language}.tar.gz"
   wget -qO- "${language_url}" | tar xvfz -
 done
-cp xpdfrc ..
 
 echo 'done.'
