@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXE_LINKER_FLAGS "-no-pie")
 set(CMAKE_BUILD_TYPE "Release")
+set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 
 # Set the SDK path
 set(CMAKE_OSX_SYSROOT /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk)
@@ -30,27 +31,58 @@ else ()
 endif ()
 
 #build xpdf
-set ( XPDF_SUBDIR ${CMAKE_CURRENT_SOURCE_DIR}/xpdf-4.05)
+# See https://github.com/DiegoPino/xpdf-4.05/blob/main/CMakeLists.txt
+set (XPDF_SUBDIR ${CMAKE_CURRENT_SOURCE_DIR}/xpdf-4.05)
 
 set(IMAGE_SUBDIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/image)
 
-set(PNG_SUBDIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/image/png)
+#set(PNG_SUBDIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/image/png)
 
-set(ZLIB_SUBDIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/image/zlib)
+#set(ZLIB_SUBDIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/image/zlib)
 
-set(ICU_SUBDIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/icu)
+#set(ICU_SUBDIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/icu)
 
-set(LIBXML_SUBDIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/libxml)
+#set(LIBXML_SUBDIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/libxml)
 
-set(FREETYPE_SUBDIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/freetype)
+#set(FREETYPE_SUBDIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/freetype)
 
-set(FREETYPE_INCLUDE_DIR_ft2build ${FREETYPE_SUBDIR}/include)
-set(FREETYPE_INCLUDE_DIR_freetype_freetype ${FREETYPE_SUBDIR}/include)
-set(FREETYPE_INCLUDE_DIR ${FREETYPE_SUBDIR}/include)
 
-set(ZLIB_INCLUDE_DIRS ${ZLIB_SUBDIR}/include)
-set(PNG_INCLUDE_DIRS ${PNG_SUBDIR}/include)
-set(PNG_FOUND TRUE)
+# Use Alpine Statically Installed libraries + headers
+# apk add autoconf automake libtool build-base dd alpine-sdk cmake
+# apk add icu-static libxml2-static zlib-static libpng-static freetype-static  libxml2-dev icu-dev  zlib-dev libpng-dev  freetype-dev  fontconfig-dev xz-dev xz-static brotli-dev brotli-static bzip2-dev bzip2-static
+
+
+find_package(PkgConfig REQUIRED)
+
+find_package(LibXml2 REQUIRED)
+include_directories(${LIBXML2_INCLUDE_DIR})
+
+find_package(ZLIB REQUIRED)
+include_directories(${ZLIB_INCLUDE_DIR})
+
+find_package(PNG REQUIRED)
+include_directories(${PNG_INCLUDE_DIR})
+
+find_package(Freetype REQUIRED)
+include_directories(${Freetype_INCLUDE_DIR})
+
+find_package(ICU REQUIRED COMPONENTS uc data i18n io)
+include_directories(${ICU_INCLUDE_DIR})
+
+find_package(LibLZMA REQUIRED)
+include_directories(${LibLZMA_INCLUDE_DIR})
+
+find_package(BZip2 REQUIRED)
+include_directories(${BZip2_INCLUDE_DIR})
+
+find_package(Brotli REQUIRED)
+include_directories(${Brotli_INCLUDE_DIR})
+
+set(FREETYPE_INCLUDE_DIR_ft2build ${FREETYPE_INCLUDE_DIR})
+set(FREETYPE_INCLUDE_DIR_freetype_freetype ${FREETYPE_INCLUDE_DIR})
+set(FREETYPE_INCLUDE_DIR ${FREETYPE_INCLUDE_DIR})
+#set(PNG_FOUND TRUE)
+
 
 if (APPLE)
     message("Using macos settings.")
@@ -78,8 +110,8 @@ elseif (CYGWIN OR MSVC OR WIN32 OR MINGW)
     set(CMAKE_CXX_STANDARD_LIBRARIES "-static-libgcc -static-libstdc++")
     set(OSSUFFIX "windows")
 elseif (UNIX)
-    message("Using linux settings.")
-    set(CMAKE_CXX_STANDARD_LIBRARIES "-static-libgcc -static-libstdc++")
+   set(CMAKE_CXX_STANDARD_LIBRARIES "-static-libgcc -static-libstdc++")
+  
     set(OSSUFFIX "linux")
 endif ()
 
@@ -108,12 +140,6 @@ endif ()
 
 MESSAGE("Final os/arch: " ${OSSUFFIX}/${ARCHSUFFIX})
 
-set(XML_LIBRARY ${LIBXML_SUBDIR}/${OSSUFFIX}/${ARCHSUFFIX}/libxml2.a)
-set(PNG_LIBRARY ${PNG_SUBDIR}/${OSSUFFIX}/${ARCHSUFFIX}/libpng.a)
-set(ZLIB_LIBRARY ${ZLIB_SUBDIR}/${OSSUFFIX}/${ARCHSUFFIX}/libz.a)
-set(FREETYPE_LIBRARY ${FREETYPE_SUBDIR}/${OSSUFFIX}/${ARCHSUFFIX}/libfreetype.a)
-set(ICUUC_LIBRARY ${ICU_SUBDIR}/${OSSUFFIX}/${ARCHSUFFIX}/libicuuc.a)
-set(ICUDATA_LIBRARY ${ICU_SUBDIR}/${OSSUFFIX}/${ARCHSUFFIX}/libicudata.a)
 
 
 set(XPDF_BUILD_DIR ${XPDF_SUBDIR}/build)
@@ -141,31 +167,40 @@ set(SOURCE_FILES
 add_executable(pdfalto ${SOURCE_FILES})
 
 target_compile_definitions(pdfalto PRIVATE PDFALTO_VERSION_STR=\"${PDFALTO_VERSION_STR}\")
+ #   message("Using Alpine linux settings.")
+ #   add_library(alpine_std_libs INTERFACE)
+ #   target_link_libraries(alpine_std_libs INTERFACE -lc++) 
+ #   target_link_libraries(pdfalto PRIVATE alpine_std_libs)
 
 if (HAVE_PAPER_H)
     if (HAVE_FONTCONFIG)
-        target_link_libraries(pdfalto ${PNG_LIBRARY} ${ZLIB_LIBRARY} ${XML_LIBRARY} splash xpdf goo fofi ${ICUUC_LIBRARY} ${ICUDATA_LIBRARY} ${FREETYPE_LIBRARY} dl ${PAPER_LIBRARY} ${FONTCONFIG_LIBRARY} pthread)
+        target_link_libraries(pdfalto  PNG::PNG LibXml2::LibXml2 ICU::uc ICU::data ICU::i18n ZLIB::ZLIB splash Freetype::Freetype xpdf goo fofi dl LibLZMA::LibLZMA Brotli::Brotli BZip2::BZip2 ${PAPER_LIBRARY} ${FONTCONFIG_LIBRARY} pthread)
     else ()
-        target_link_libraries(pdfalto ${PNG_LIBRARY} ${ZLIB_LIBRARY} ${XML_LIBRARY} splash xpdf goo fofi ${ICUUC_LIBRARY} ${ICUDATA_LIBRARY} ${FREETYPE_LIBRARY} dl ${PAPER_LIBRARY} pthread)
+        target_link_libraries(pdfalto  PNG::PNG LibXml2::LibXml2 ICU::uc ICU::data ICU::i18n ZLIB::ZLIB splash Freetype::Freetype xpdf goo fofi dl LibLZMA::LibLZMA Brotli::Brotli $BZip2::BZip2 {PAPER_LIBRARY} pthread)
     endif ()
 else ()
     if (HAVE_FONTCONFIG)
-        target_link_libraries(pdfalto ${PNG_LIBRARY} ${ZLIB_LIBRARY} ${XML_LIBRARY} splash xpdf goo fofi ${ICUUC_LIBRARY} ${ICUDATA_LIBRARY} ${FREETYPE_LIBRARY} dl ${FONTCONFIG_LIBRARY} pthread)
+        target_link_libraries(pdfalto  PNG::PNG LibXml2::LibXml2 ICU::uc ICU::data ICU::i18n ZLIB::ZLIB splash Freetype::Freetype xpdf goo fofi dl LibLZMA::LibLZMA Brotli::Brotli BZip2::BZip2 ${FONTCONFIG_LIBRARY} pthread)
     else ()
-        target_link_libraries(pdfalto ${PNG_LIBRARY} ${ZLIB_LIBRARY} ${XML_LIBRARY} splash xpdf goo fofi ${ICUUC_LIBRARY} ${ICUDATA_LIBRARY} ${FREETYPE_LIBRARY} dl pthread)
+        target_link_libraries(pdfalto PNG::PNG LibXml2::LibXml2 ICU::uc ICU::data ICU::i18n ZLIB::ZLIB splash Freetype::Freetype xpdf goo fofi dl LibLZMA::LibLZMA Brotli::Brotli BZip2::BZip2 pthread)
     endif ()
 endif ()
 
+
 target_include_directories(
         pdfalto
-        PUBLIC ${LIBXML_SUBDIR}/include
-        PUBLIC ${FREETYPE_INCLUDE_DIR}
-        PUBLIC ${PNG_INCLUDE_DIRS}
-        PUBLIC ${ZLIB_INCLUDE_DIRS}
-        PUBLIC ${XPDF_SUBDIR}
-        PUBLIC ${XPDF_SUBDIR}/goo
-        PUBLIC ${XPDF_SUBDIR}/fofi
-        PUBLIC ${XPDF_SUBDIR}/xpdf
-        PUBLIC ${XPDF_BUILD_DIR}
-        PUBLIC ${ICU_SUBDIR}/include
+        PRIVATE ${XML_INCLUDE_DIRS}
+        PRIVATE ${Freetype_INCLUDE_DIR}
+        PRIVATE ${PNG_INCLUDE_DIRS}
+        PRIVATE ${ZLIB_INCLUDE_DIRS}
+        PRIVATE ${ICU_INCLUDE_DIRS}
+        PRIVATE ${LibLZMA_INCLUDE_DIRS}
+        PRIVATE ${Brotli_INCLUDE_DIRS}
+        PRIVATE ${BZip2_INCLUDE_DIRS}
+        PRIVATE ${XPDF_SUBDIR}
+        PRIVATE ${XPDF_SUBDIR}/goo
+        PRIVATE ${XPDF_SUBDIR}/fofi
+        PRIVATE ${XPDF_SUBDIR}/xpdf
+        PRIVATE ${XPDF_BUILD_DIR}
+        
 )
