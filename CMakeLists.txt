@@ -11,6 +11,7 @@ set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 
 # Set the SDK path
 set(CMAKE_OSX_SYSROOT /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 #--- look for fontconfig
 if (NOT NO_FONTCONFIG)
@@ -174,15 +175,15 @@ target_compile_definitions(pdfalto PRIVATE PDFALTO_VERSION_STR=\"${PDFALTO_VERSI
 
 if (HAVE_PAPER_H)
     if (HAVE_FONTCONFIG)
-        target_link_libraries(pdfalto  PNG::PNG LibXml2::LibXml2 ICU::uc ICU::data ICU::i18n ZLIB::ZLIB splash Freetype::Freetype xpdf goo fofi dl LibLZMA::LibLZMA Brotli::Brotli BZip2::BZip2 ${PAPER_LIBRARY} ${FONTCONFIG_LIBRARY} pthread)
+        target_link_libraries(pdfalto  PNG::PNG LibXml2::LibXml2 ICU::uc ICU::data ICU::i18n ZLIB::ZLIB splash Freetype::Freetype xpdf goo fofi dl LibLZMA::LibLZMA ${BROTLI_LIBRARIES} BZip2::BZip2 ${PAPER_LIBRARY} ${FONTCONFIG_LIBRARY} pthread)
     else ()
-        target_link_libraries(pdfalto  PNG::PNG LibXml2::LibXml2 ICU::uc ICU::data ICU::i18n ZLIB::ZLIB splash Freetype::Freetype xpdf goo fofi dl LibLZMA::LibLZMA Brotli::Brotli $BZip2::BZip2 {PAPER_LIBRARY} pthread)
+        target_link_libraries(pdfalto  PNG::PNG LibXml2::LibXml2 ICU::uc ICU::data ICU::i18n ZLIB::ZLIB splash Freetype::Freetype xpdf goo fofi dl LibLZMA::LibLZMA ${BROTLI_LIBRARIES} $BZip2::BZip2 {PAPER_LIBRARY} pthread)
     endif ()
 else ()
     if (HAVE_FONTCONFIG)
-        target_link_libraries(pdfalto  PNG::PNG LibXml2::LibXml2 ICU::uc ICU::data ICU::i18n ZLIB::ZLIB splash Freetype::Freetype xpdf goo fofi dl LibLZMA::LibLZMA Brotli::Brotli BZip2::BZip2 ${FONTCONFIG_LIBRARY} pthread)
+        target_link_libraries(pdfalto  PNG::PNG LibXml2::LibXml2 ICU::uc ICU::data ICU::i18n ZLIB::ZLIB splash Freetype::Freetype xpdf goo fofi dl LibLZMA::LibLZMA ${BROTLI_LIBRARIES} BZip2::BZip2 ${FONTCONFIG_LIBRARY} pthread)
     else ()
-        target_link_libraries(pdfalto PNG::PNG LibXml2::LibXml2 ICU::uc ICU::data ICU::i18n ZLIB::ZLIB splash Freetype::Freetype xpdf goo fofi dl LibLZMA::LibLZMA Brotli::Brotli BZip2::BZip2 pthread)
+        target_link_libraries(pdfalto PNG::PNG LibXml2::LibXml2 ICU::uc ICU::data ICU::i18n ZLIB::ZLIB splash Freetype::Freetype xpdf goo fofi dl LibLZMA::LibLZMA ${BROTLI_LIBRARIES} BZip2::BZip2 pthread)
     endif ()
 endif ()
 
